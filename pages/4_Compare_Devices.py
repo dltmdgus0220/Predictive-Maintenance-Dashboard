@@ -83,4 +83,4 @@ else:
 
                 # 6. 상세 데이터 보기
                 with st.expander("비교 데이터 상세 보기"):
-                    st.dataframe(df_compare_filtered, use_container_width=True)}
+                    st.dataframe(df_compare_filtered, use_container_width=True)

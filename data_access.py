@@ -43,9 +43,9 @@ def get_device_list():
     return df
 
 def get_sensor_data_by_device(device_id: str):
-    """특정 장비의 시계열 센서 데이터를 가져옵니다."""
+    """특정 장비의 시계열 센서 데이터를 가져옵니다. (보안 및 안정성 강화 버전)"""
     conn = get_db_connection()
-    query = f"""
+    query = """
     SELECT
         record_id,
         collection_date || ' ' || collection_time as timestamp,
@@ -54,14 +54,26 @@ def get_sensor_data_by_device(device_id: str):
         CT1_value, CT2_value, CT3_value, CT4_value,
         annotation_state
     FROM sensor_record
-    WHERE device_id = '{device_id}'
-    ORDER BY timestamp ASC;
+    WHERE device_id = ?
+    ORDER BY collection_date ASC, collection_time ASC;
     """
-    df = pd.read_sql_query(query, conn)
+    # SQL Injection을 방지하기 위해 매개변수화된 쿼리 사용
+    df = pd.read_sql_query(query, conn, params=(device_id,))
+    
+    if df.empty:
+        conn.close()
+        return pd.DataFrame()
+
+    # 날짜 형식 변환 및 오류 처리
     df['timestamp'] = pd.to_datetime(df['timestamp'], format='%m-%d %H:%M:%S', errors='coerce')
     df.dropna(subset=['timestamp'], inplace=True)
-    # 연도를 2024년으로 강제 설정
-    df['timestamp'] = df['timestamp'].apply(lambda dt: dt.replace(year=2024))
+    
+    # 연도를 2024년으로 강제 설정 (NaT 값 오류 방지)
+    df['timestamp'] = df['timestamp'].apply(lambda dt: dt.replace(year=2024) if pd.notnull(dt) else dt)
+    
+    # datetime 객체 기준으로 최종 정렬하여 순서 보장
+    df.sort_values(by='timestamp', inplace=True)
+
     conn.close()
     return df
 

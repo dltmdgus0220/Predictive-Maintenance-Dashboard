@@ -26,8 +26,8 @@ else:
         device_list['display_name']
     )
     
-    # 선택된 display_name을 기반으로 device_id와 device_name 찾기
-    selected_device_id = device_list[device_list['display_name'] == selected_display_name].iloc[0]
+    # 선택된 display_name을 기반으로 device_id 문자열을 정확히 추출합니다.
+    selected_device_id = device_list[device_list['display_name'] == selected_display_name]['device_id'].iloc[0]
 
     st.header(f"{selected_display_name} 데이터 분석")
 
@@ -53,7 +53,7 @@ else:
             corr = df_numeric.corr()
             fig_heatmap = px.imshow(corr, text_auto=True, aspect="auto", 
                                     title="주요 센서 간 상관관계",
-                                    color_continuous_scale='coolwarm', # 실무에서 선호되는 컬러맵
+                                    color_continuous_scale='icefire',
                                     zmin=-1, zmax=1) # 색상 범위를 -1에서 1로 고정
             st.plotly_chart(fig_heatmap, use_container_width=True)
 
